@@ -186,15 +186,15 @@ public class redAuton1 extends LinearOpMode
         //(duration, power, position)
         if(tagOfInterest.id == Left){
             // left code
-            forwardT(.5,1);
-            strafeLeft(1, 1);
+            forwardT(1,0.5);
+            strafeLeft(1, 0.5);
         }else if (tagOfInterest == null || tagOfInterest.id == Middle){
             //middle code
-            forwardT(2, 1);
+            forwardT(1, 0.5);
         }else if (tagOfInterest.id == Right){
             //right code
-            forwardT(.5, 1);
-            strafeRight(1, 1);
+            forwardT(1, 0.5);
+            strafeRight(1, 0.5);
         }
 
 
