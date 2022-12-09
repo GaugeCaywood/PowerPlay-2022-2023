@@ -45,8 +45,8 @@ import java.lang.Math;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-@Autonomous(name="RedAuton1", group="Auton")
-public class redAuton1 extends LinearOpMode
+@Autonomous(name="R1B2", group="Auton")
+public class r1b2 extends LinearOpMode
 {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
@@ -67,9 +67,9 @@ public class redAuton1 extends LinearOpMode
 
     //    int ID_TAG_OF_INTEREST = 18; // Tag ID 18 from the 36h11 family
 //Tag ID's of sleeve.
-    int Left = 1;
-    int Middle = 2;
-    int Right = 3;
+    int pos1 = 1;
+    int pos2 = 2;
+    int pos3 = 3;
     AprilTagDetection tagOfInterest = null;
     //BotHardware robot = new BotHardware();
     private ElapsedTime runtime = new ElapsedTime();
@@ -115,7 +115,7 @@ public class redAuton1 extends LinearOpMode
 
                 for(AprilTagDetection tag : currentDetections)
                 {
-                    if(tag.id == Left || tag.id == Middle || tag.id == Right)
+                    if(tag.id == pos1 || tag.id == pos2 || tag.id == pos3)
                     {
                         tagOfInterest = tag;
                         tagFound = true;
@@ -184,17 +184,20 @@ public class redAuton1 extends LinearOpMode
 
         /* Actually do something useful */
         //(duration, power, position)
-        if(tagOfInterest.id == Left){
+        if(tagOfInterest.id == pos1){
             // left code
-            forwardT(1,0.5);
-            strafeLeft(1, 0.5);
-        }else if (tagOfInterest == null || tagOfInterest.id == Middle){
+            forwardT(1.5,0.5);
+            backwardT(.25, .5);
+            strafeLeft(2, 0.5);
+
+        }else if (tagOfInterest == null || tagOfInterest.id == pos2){
             //middle code
-            forwardT(1, 0.5);
-        }else if (tagOfInterest.id == Right){
+            forwardT(1.25, 0.5);
+        }else if (tagOfInterest.id == pos3){
             //right code
-            forwardT(1, 0.5);
-            strafeRight(1, 0.5);
+            forwardT(1.4, 0.5);
+            strafeRight(1.75, 0.5);
+            forwardT(.25, .5);
         }
 
 
@@ -213,10 +216,10 @@ public class redAuton1 extends LinearOpMode
     }
     private void forwardT(double duration, double power){
         //move code
-        robot.fl.setPower(1);
-        robot.fr.setPower(1);
-        robot.bl.setPower(-1);
-        robot.br.setPower(-1);
+        robot.fl.setPower(power);
+        robot.fr.setPower(power);
+        robot.bl.setPower(power);
+        robot.br.setPower(power);
 
         runtime.reset();
         while ((runtime.seconds() < duration ) && (opModeIsActive())) {
@@ -229,10 +232,10 @@ public class redAuton1 extends LinearOpMode
     }
     private void backwardT(double duration,double power){
         //move code
-        robot.fl.setPower(-1);
-        robot.fr.setPower(-1);
-        robot.bl.setPower(1);
-        robot.br.setPower(1);
+        robot.fl.setPower(-power);
+        robot.fr.setPower(-power);
+        robot.bl.setPower(-power);
+        robot.br.setPower(-power);
 
         runtime.reset();
         while ((runtime.seconds() < duration ) && (opModeIsActive())) {
@@ -243,12 +246,12 @@ public class redAuton1 extends LinearOpMode
         robot.br.setPower(0);
 
     }
-    private void strafeLeft(double duration,double Power){
+    private void strafeLeft(double duration,double power){
         //move code
-        robot.fl.setPower(-1);
-        robot.fr.setPower(1);
-        robot.bl.setPower(1);
-        robot.br.setPower(-1);
+        robot.fl.setPower(-power);
+        robot.fr.setPower(power);
+        robot.bl.setPower(power);
+        robot.br.setPower(-power);
 
         runtime.reset();
         while ((runtime.seconds() < duration ) && (opModeIsActive())) {
@@ -259,12 +262,12 @@ public class redAuton1 extends LinearOpMode
         robot.br.setPower(0);
 
     }
-    private void strafeRight(double duration,double Power){
+    private void strafeRight(double duration,double power){
         //move code
-        robot.fl.setPower(-1);
-        robot.fr.setPower(1);
-        robot.bl.setPower(1);
-        robot.br.setPower(-1);
+        robot.fl.setPower(power);
+        robot.fr.setPower(-power);
+        robot.bl.setPower(-power);
+        robot.br.setPower(power);
 
         runtime.reset();
         while ((runtime.seconds() < duration ) && (opModeIsActive())) {
@@ -275,12 +278,12 @@ public class redAuton1 extends LinearOpMode
         robot.br.setPower(0);
 
     }
-    private void turnLeft(double duration,double Power){
+    private void turnLeft(double duration,double power){
         //move code
-        robot.fl.setPower(1);
-        robot.fr.setPower(1);
-        robot.bl.setPower(1);
-        robot.br.setPower(1);
+        robot.fl.setPower(-power);
+        robot.fr.setPower(power);
+        robot.bl.setPower(-power);
+        robot.br.setPower(power);
 
         runtime.reset();
         while ((runtime.seconds() < duration ) && (opModeIsActive())) {
@@ -291,12 +294,12 @@ public class redAuton1 extends LinearOpMode
         robot.br.setPower(0);
 
     }
-    private void turnRight(double duration,double Power){
+    private void turnRight(double duration,double power){
         //move code
-        robot.fl.setPower(-1);
-        robot.fr.setPower(-1);
-        robot.bl.setPower(-1);
-        robot.br.setPower(-1);
+        robot.fl.setPower(power);
+        robot.fr.setPower(-power);
+        robot.bl.setPower(power);
+        robot.br.setPower(-power);
 
         runtime.reset();
         while ((runtime.seconds() < duration ) && (opModeIsActive())) {
