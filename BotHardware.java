@@ -45,9 +45,9 @@ public class BotHardware
     //   public Servo    hand  = null;
 
     //HARVESTER SERVOS
-    public CRServo    L1  = null;
+    public CRServoImplEx    L1  = null;
 //    public CRServo    L2  = null;
-    public CRServo    R1  = null;
+    public CRServoImplEx    R1  = null;
 //    public CRServo    R2  = null;
 
 
@@ -134,9 +134,9 @@ public class BotHardware
 //        hand  = hwMap.get(Servo.class, "hand");
 
         //HARVESTER SERVOS
-        L1  = hwMap.get(CRServo.class, "L1");
+        L1  = hwMap.get(CRServoImplEx.class, "L1");
 //        L2  = hwMap.get(CRServo.class, "L2");
-        R1  = hwMap.get(CRServo.class, "R1");
+        R1  = hwMap.get(CRServoImplEx.class, "R1");
 //        R2  = hwMap.get(CRServo.class, "R2");
 
         wrist.setPosition(0);
