@@ -325,7 +325,7 @@ public class Drive4 extends LinearOpMode {
             }
             
             //reset tower sequence
-            if(gamepod2.guide){
+            if(gamepad2.guide){
                 tower = 5;
             }
             
