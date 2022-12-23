@@ -21,11 +21,13 @@ public class Drive4 extends LinearOpMode {
     public double autoPosition = 0;
     /* Declare OpMode members. */
     BotHardware robot = new BotHardware();
+    ElapsedTime runtime = new ElapsedTime();
     // private DistanceSensor sensor_range;
     @Override
     public void runOpMode() {
         double lt;
         double rt;
+        int tower = 5;
 //  sensor_range = hardwareMap.get(DistanceSensor.class, "sensor_range");
 //  Rev2mDistanceSensor sensrTimeoffliht = (Rev2mDistanceSensor)sensor_range;
         robot.init(hardwareMap);
@@ -43,8 +45,9 @@ public class Drive4 extends LinearOpMode {
         //robot.lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //swivelMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
-        robot.init(hardwareMap);
+    //    robot.init(hardwareMap);
         double x= 1.0;
+        runtime.reset();
 
         while (opModeIsActive()) {
             lt = gamepad2.left_trigger;
@@ -213,7 +216,7 @@ public class Drive4 extends LinearOpMode {
 
             if (gamepad2.dpad_down){
                 robot.lift.getCurrentPosition();
-                robot.lift.setTargetPosition( 33);
+                robot.lift.setTargetPosition(33);
                 robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 robot.lift.setPower(-1);
 
@@ -264,38 +267,78 @@ public class Drive4 extends LinearOpMode {
                     robot.lift.setPower(0);
                 }
             }
-            // if (gamepad2.left_trigger > 0){
-            //     robot.arm.setPower(-1.0);
-            // }
-            // else robot.arm.setPower(0);
 
-//     if(gamepad2.right_bumper) {
-//  robot.Harvest.setPower(1);
-//  }
-//     else if (gamepad2.left_bumper) {
-//         robot.Harvest.setPower(-1);
-//     }
+            //////////////////////Tower Code//////////////////////
+            if(gamepad2.x && (tower == 5)){
 
-//     else {
-//         robot.Harvest.setPower(0);
-//     }
+                robot.lift.getCurrentPosition();
+                robot.lift.setTargetPosition(-470);
+                robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+                  robot.lift.setPower(-1);
 
-//     robot.duckie.setPower( gamepad2.left_trigger - gamepad2.right_trigger);
+                tower = 4; 
+            }
 
+            if(gamepad2.x && (tower == 4)){
 
+                robot.lift.getCurrentPosition();
+                robot.lift.setTargetPosition(-342);
+                robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+                  robot.lift.setPower(-1);
 
+                tower = 3; 
+            }
 
+            if(gamepad2.x && (tower == 3)){
 
-//     }
+                robot.lift.getCurrentPosition();
+                robot.lift.setTargetPosition(-247);
+                robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-//     if(gamepad2.y){
-//         robot.bucket.setPosition(0);
-//     }
-//     else{
-//       robot.bucket.setPosition(1.0);
-//     }
+                  robot.lift.setPower(-1);
+
+                tower = 2; 
+            }
+
+            if(gamepad2.x && (tower == 2)){
+
+                robot.lift.getCurrentPosition();
+                robot.lift.setTargetPosition(-90);
+                robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                  robot.lift.setPower(-1);
+
+                tower = 1; 
+            }
+
+            if(gamepad2.x && (tower == 1)){
+
+                robot.lift.getCurrentPosition();
+                robot.lift.setTargetPosition(33);
+                robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                  robot.lift.setPower(-1);
+
+                tower = 5; 
+            }
+            
+            //reset tower sequence
+            if(gamepod2.guide){
+                tower = 5;
+            }
+            
+            //////////////////////RUMBLE CODE/////////////////////////////
+            if((runtime.seconds() > 85) && (runtime.seconds() < 86) && !gamepad1.isRumbling()){
+                gamepad1.rumbleBlips(5);
+                gamepad2.rumbleBlips(5);
+            }
+            
+            if((runtime.seconds() > 90) && (runtime.seconds() < 91) && !gamepad1.isRumbling()){
+                gamepad1.rumble(1000);
+                gamepad2.rumble(1000);
+            }
 
 
 
