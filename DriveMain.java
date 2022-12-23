@@ -28,6 +28,7 @@ public class Drive4 extends LinearOpMode {
         double lt;
         double rt;
         int tower = 5;
+        boolean changeTower = false;
 //  sensor_range = hardwareMap.get(DistanceSensor.class, "sensor_range");
 //  Rev2mDistanceSensor sensrTimeoffliht = (Rev2mDistanceSensor)sensor_range;
         robot.init(hardwareMap);
@@ -58,6 +59,8 @@ public class Drive4 extends LinearOpMode {
 
             telemetry.addData("Auto Postion:", autoPosition);
             telemetry.addData("Lift", "%.3f", robot.lift.getPower());
+            telemetry.addData("Current time: ", runtime.seconds());
+            telemetry.addData("Tower Position: ", tower);
             telemetry.update();
 
             /*DISTANCE SENSOR TELEMETRY*/
@@ -268,67 +271,74 @@ public class Drive4 extends LinearOpMode {
                 }
             }
 
-            //////////////////////Tower Code//////////////////////
+                       //////////////////////Tower Code//////////////////////
             if(gamepad2.x && (tower == 5)){
+                changeTower = true;
 
                 robot.lift.getCurrentPosition();
                 robot.lift.setTargetPosition(-470);
                 robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                  robot.lift.setPower(-1);
-
-                tower = 4; 
+                  robot.lift.setPower(-0.5);
             }
 
             if(gamepad2.x && (tower == 4)){
+                changeTower = true;
 
                 robot.lift.getCurrentPosition();
                 robot.lift.setTargetPosition(-342);
                 robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                  robot.lift.setPower(-1);
-
-                tower = 3; 
+                  robot.lift.setPower(-0.5);
             }
 
             if(gamepad2.x && (tower == 3)){
+                changeTower = true;
 
                 robot.lift.getCurrentPosition();
                 robot.lift.setTargetPosition(-247);
                 robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                  robot.lift.setPower(-1);
-
-                tower = 2; 
+                  robot.lift.setPower(-0.5);
             }
 
             if(gamepad2.x && (tower == 2)){
+                changeTower = true;
+
 
                 robot.lift.getCurrentPosition();
                 robot.lift.setTargetPosition(-90);
                 robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                  robot.lift.setPower(-1);
-
-                tower = 1; 
+                  robot.lift.setPower(-0.5);
             }
 
             if(gamepad2.x && (tower == 1)){
+                changeTower = true;
 
                 robot.lift.getCurrentPosition();
                 robot.lift.setTargetPosition(33);
                 robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                  robot.lift.setPower(-1);
-
-                tower = 5; 
+                robot.lift.setPower(-0.5);
             }
             
             //reset tower sequence
             if(gamepad2.guide){
+                changeTower = true;
+
                 tower = 5;
             }
-            
+
+            if(gamepad2.touchpad && changeTower){
+                changeTower = false;
+                if(tower == 1){
+                    tower = 5;
+                }else{
+                    tower = tower-1;
+                }
+            }
+    
             //////////////////////RUMBLE CODE/////////////////////////////
             if((runtime.seconds() > 85) && (runtime.seconds() < 86) && !gamepad1.isRumbling()){
                 gamepad1.rumbleBlips(5);
