@@ -23,7 +23,7 @@ import java.util.ArrayList;
 
 
 @Autonomous(name="asyncTest", group="Auton")
-public class asyncTest extends LinearOpMode {
+public class asynctest extends LinearOpMode {
 
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
@@ -54,6 +54,7 @@ public class asyncTest extends LinearOpMode {
 
     public enum State{
         TRAJ_1,
+        TRAJ_BACK,
         TURN_1,
         TRAJ_2,
         TRAJ_3,
@@ -67,7 +68,7 @@ public class asyncTest extends LinearOpMode {
 
     MotorState motorState = MotorState.LVL;
     State currentState = State.IDLE;
-  
+
     //TOWER ARRAY
     int[] towerPos = {20, -90, -247, -342, -470};
 
@@ -112,7 +113,7 @@ public class asyncTest extends LinearOpMode {
     public void Position_Lvl(int poz2){
         SetTargetPosition(poz2);
         if(!isBusy()){
-            GoPos = false;
+            //GoPos = false;
         }
     }
 
@@ -120,21 +121,27 @@ public class asyncTest extends LinearOpMode {
     public void runOpMode(){
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-
+        robot.init(hardwareMap);
         liftTimer.reset();
 
         ///// TRAJECTORIES /////
         //FORWARD
         Trajectory traj1 = drive.trajectoryBuilder(new Pose2d())
-                .forward(63)
+                .forward(66)
                 .build();
+
+        Trajectory trajBack = drive.trajectoryBuilder(new Pose2d())
+                .back(4)
+                .build();
+
         //FORWARD AFTER TURN
         Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
-                .forward(8)
+                .forward(9)
                 .build();
+
         //BACK THEN TURN
         Trajectory traj3 = drive.trajectoryBuilder(traj2.end())
-                .back(6)
+                .back(11)
                 .addTemporalMarker(0, () -> {
                     resetRuntime();
                     drive.R1.setPower(-1.0);
@@ -271,104 +278,130 @@ public class asyncTest extends LinearOpMode {
             telemetry.update();
         }
 
-    waitForStart();
+        waitForStart();
 
-    if (isStopRequested()) return;
-    //////START STATE MACHINE//////
-    
-    //start moving
-    currentState = State.TRAJ_1;
-    drive.followTrajectoryAsync(traj1);
-    target = -2900;                    
-      
-    while (opModeIsActive() && !isStopRequested()) {
-        switch(currentState){
-           case TRAJ_1:
-                //Once turn is finished (not busy), move to turn 1
-                if (!drive.isBusy()) {
-                    currentState = State.TURN_1;
-                    drive.turnAsync(65);
-                }
-                break;
-            case TURN_1:
-                //Once turn is finished, move to traj 2
-                if (!drive.isBusy()) {
-                    currentState = State.TRAJ_2;
-                    drive.followTrajectoryAsync(traj2);
-                }
-                break;
-          case TRAJ_2:
-                //Once traj 2 is finished (and over pole), drop lift to tower 5, move to traj 3
-                if(!drive.isBusy()){
-                   target = towerPos[c];
-                   currentState = State.TRAJ_3;
-                   drive.followTrajectoryAsync(traj3);
-                }
-                break;
-          case TRAJ_3:
-                //Once traj 3 is finished, move to turn 2
-                if (!drive.isBusy()) {
-                    currentState = State.TURN_2;
-                    drive.turnAsync(-140);
-                }
-            break;
-          case TURN_2:
-                //Once turn 2 is finished, move to traj 4 (forward into tower)
-                if(!drive.isBusy()){
-                   c = c-1; //also drop tower counter so it'll be correct next loop
-                   currentState = State.TRAJ_4;
-                   drive.followTrajectoryAsync(traj4);
-                }
-            break;
-          case TRAJ_4:
-                //Once traj 4 is finished, lift to high level and move to traj 5 (this should lift early enough to not tip the tower but we may need a slight wait)
-                if(!drive.isBusy()){
-                   target = -2900;
-                   currentState = State.TRAJ_5;
-                   drive.followTrajectoryAsync(traj5);
-                }
-            break;
-          case TRAJ_5:
-                //Once traj 5 is finished, move to turn 3
-                if (!drive.isBusy()) {
-                    currentState = State.TURN_3;
-                    drive.turnAsync(65);
-                }
-            break;
-          case TURN_3:
-                //Once turn 3 is finished, move to traj 6
-                if (!drive.isBusy()) {
-                    currentState = State.TRAJ_6;
-                    drive.followTrajectoryAsync(traj6);
-                }
-             break;
-          case TRAJ_6:
-                //Once traj 6 is finished, check if we still have cones on the tower (c >= 0). 
-                //If so, drop to next tower pos and repeat up to Traj2 (which goes into traj3/drop and back from pole)
-                if(!drive.isBusy && (c >= 0)){
+        if (isStopRequested()) return;
+        //////START STATE MACHINE//////
+
+        //start moving
+        currentState = State.TRAJ_1;
+        drive.followTrajectoryAsync(traj1);
+        //target = -2900;
+
+        while (opModeIsActive() && !isStopRequested()) {
+            Update(target);
+            switch(currentState){
+                case TRAJ_1:
+                    //Once turn is finished (not busy), move to turn 1
+                    //target = -2900;
+                    //Update(target);
+
+                    if (!drive.isBusy()) {
+                        currentState = State.TRAJ_BACK;
+                        drive.followTrajectoryAsync(trajBack);
+                    }
+                    break;
+                case TRAJ_BACK:
+                    target = -2900;
+                    Update(target);
+                    if (!drive.isBusy()) {
+                        currentState = State.TURN_1;
+                        drive.turnAsync(Math.toRadians(74));
+                    }
+                case TURN_1:
+                    target = -2900;
+                    Update(target);
+
+                    //Once turn is finished, move to traj 2
+                    if (!drive.isBusy()) {
+                        currentState = State.TRAJ_2;
+                        drive.followTrajectoryAsync(traj2);
+                    }
+                    break;
+                case TRAJ_2:
+                    //Once traj 2 is finished (and over pole), drop lift to tower 5, move to traj 3
+                    target = -2900;
+                    Update(target);
+
+                    if(!drive.isBusy()){
+                        target = towerPos[c];
+                        currentState = State.TRAJ_3;
+                        drive.followTrajectoryAsync(traj3);
+                    }
+                    break;
+                case TRAJ_3:
+                    //Once traj 3 is finished, move to turn 2
                     target = towerPos[c];
-                    currentState = State.TRAJ_2;
-                }else if(!drive.isBusy){ //If not, move to idle state. 
-                    currentState = State.IDLE;
-                }
-                break;
-            case IDLE:
-                //We probably need to put the parking logic next but for now this works maybe
-                break;
+
+                    if (!drive.isBusy()) {
+                        currentState = State.TURN_2;
+                        drive.turnAsync(Math.toRadians(-140));
+                    }
+                    break;
+                case TURN_2:
+                    //Once turn 2 is finished, move to traj 4 (forward into tower)
+                    target = towerPos[c];
+                    Update(target);
+
+                    if(!drive.isBusy()){
+                        c = c-1; //also drop tower counter so it'll be correct next loop
+                        currentState = State.TRAJ_4;
+                        drive.followTrajectoryAsync(traj4);
+                    }
+                    break;
+                case TRAJ_4:
+                    //Once traj 4 is finished, lift to high level and move to traj 5 (this should lift early enough to not tip the tower but we may need a slight wait)
+                    if(!drive.isBusy()){
+                        target = -2900;
+                        currentState = State.TRAJ_5;
+                        drive.followTrajectoryAsync(traj5);
+                    }
+                    break;
+                case TRAJ_5:
+                    //Once traj 5 is finished, move to turn 3
+                    target = -2900;
+
+                    if (!drive.isBusy()) {
+                        currentState = State.TURN_3;
+                        drive.turnAsync(Math.toRadians(65));
+                    }
+                    break;
+                case TURN_3:
+                    //Once turn 3 is finished, move to traj 6
+                    target = -2900;
+
+                    if (!drive.isBusy()) {
+                        currentState = State.TRAJ_6;
+                        drive.followTrajectoryAsync(traj6);
+                    }
+                    break;
+                case TRAJ_6:
+                    //Once traj 6 is finished, check if we still have cones on the tower (c >= 0).
+                    //If so, drop to next tower pos and repeat up to Traj2 (which goes into traj3/drop and back from pole)
+                    if(!drive.isBusy() && (c >= 0)){
+                        target = towerPos[c];
+                        currentState = State.TRAJ_2;
+                    }else if(!drive.isBusy()){ //If not, move to idle state.
+                        currentState = State.IDLE;
+                    }
+                    break;
+                case IDLE:
+                    //We probably need to put the parking logic next but for now this works maybe
+                    break;
+            }
+
+            Update(target);
+            drive.update();
+
+            if(tagOfInterest.id == pos1){
+                //park 1
+            }else if(tagOfInterest.id == pos2){
+                //park 2
+            }else{
+                //park 3
+            }
         }
-        
-        drive.update();
-        lift.update(target);
-      
-        if(tagOfInterest.id == pos1){
-            //park 1
-        }else if(tagOfInterest.id == pos2){
-            //park 2
-        }else{
-            //park 3
-        }
-    }
-      
+
     }
 
     void tagToTelemetry(AprilTagDetection detection)
