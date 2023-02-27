@@ -17,7 +17,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 //import org.firstinspires.ftc.teamcode.Drive;
 //import org.firstinspires.ftc.teamcode.Duck;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import java.lang.Math;
 import java.util.ArrayList;
 
@@ -28,7 +29,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
     BotHardware robot = new BotHardware();
-
+    private ElapsedTime runtime = new ElapsedTime();
     static final double FEET_PER_METER = 3.28084;
 
     double fx = 578.272;
@@ -38,7 +39,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
     // UNITS ARE METERS
     double tagsize = 0.166;
-    private ElapsedTime runtime = new ElapsedTime();
+//    private ElapsedTime runtime = new ElapsedTime();
 
     //    int ID_TAG_OF_INTEREST = 18; // Tag ID 18 from the 36h11 family
 //Tag ID's of sleeve.
@@ -77,9 +78,19 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
     ElapsedTime liftTimer = new ElapsedTime();
 
+    //Sensor variables
+    double sensorUp = 1;            double sensorDown = 0.5;
+    double minDSPoleTurn = 30;    double maxDSPoleTurn = 15;
+    double minDSPoleFWD = 3;        double maxDSPoleFWD = 4;
+    double minDsPoleBWD = 20;        double maxDSPoleBWD = 7;
+    double minDSTowerTurn = 69.6;   double maxDSTowerTurn = 15;
+    double minDSTowerFWD = 3;    double maxDSTowerFWD = 10;
+    double minDsTowerBWD = 300;        double maxDSTowerBWD = 400;
+    //Lift variables
     int c = 4;
     int target = 0;
     boolean GoPos = true;
+
     // LIFT POSITIONS
     public void Update(int target){
 //        drive.lift.switchToLevel(target);
@@ -307,6 +318,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
         //start moving
         currentState = State.TRAJ_1;
+        robot.distancePoleServo.setPosition(sensorUp);
         drive.followTrajectoryAsync(traj1);
         // target = 0;
 
@@ -325,11 +337,15 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     break;
                 case TRAJ_BACK:
                     target = -2950;
+                    //robot.distancePoleServo.setPosition(sensorUp);
                     Update(target);
                     if (!drive.isBusy()) {
-                        turn(0.3,)
+                       // leftturn(0.3, 100,1000);
+
+                        leftTurn(.3, minDSPoleTurn, maxDSPoleTurn);
                         currentState = State.TURN_1;
-                        drive.turnAsync(Math.toRadians(59));
+
+                       // drive.turnAsync(Math.toRadians(59));
                     }
                 case TURN_1:
                     target = -2950;
@@ -337,28 +353,34 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
                     //Once turn is finished, move to traj 2
                     if (!drive.isBusy()) {
+                        forward(0.5, 0, minDSPoleFWD, maxDSPoleFWD);
                         currentState = State.TRAJ_2;
-                        drive.followTrajectoryAsync(traj2);
+
+                        //drive.followTrajectoryAsync(traj2);
                     }
                     break;
                 case TRAJ_2:
                     //Once traj 2 is finished (and over pole), drop lift to tower 5, move to traj 3
-                    target = -2950;
+                    target = -2650;
                     Update(target);
-
+                    robot.distancePoleServo.setPosition(sensorDown);
                     if(!drive.isBusy()){
-                        target = towerPos[c];
-                        currentState = State.TRAJ_7;
-                        drive.followTrajectoryAsync(traj7);
+                        back(.5,minDsPoleBWD, maxDSPoleBWD, 0);
+
+                        currentState = State.TRAJ_3;
+
+                        //drive.followTrajectoryAsync(traj7);
+
                     }
                     break;
-              /*  case TRAJ_3:
+               case TRAJ_3:
                     //Once traj 3 is finished, move to turn 2
-                    target = towerPos[c];
 
                     if (!drive.isBusy()) {
-                        currentState = State.TURN_2;
-                        drive.turnAsync(Math.toRadians(-122));
+                        rightTurn(.3,minDSTowerTurn,maxDSTowerTurn);
+                        currentState = State.PARK;
+                        //drive.turnAsync(Math.toRadians(-122));
+
                     }
                     break;
                 case TURN_2:
@@ -368,16 +390,20 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
                     if(!drive.isBusy()){
                         c = c-1; //also drop tower counter so it'll be correct next loop
+                        forward(.5, 1, minDSTowerFWD, maxDSTowerFWD);
+                        slowForward(0.5, 1, .75);
                         currentState = State.TRAJ_4;
-                        drive.followTrajectoryAsync(traj4);
+                        //drive.followTrajectoryAsync(traj4);
                     }
                     break;
                 case TRAJ_4:
                     //Once traj 4 is finished, lift to high level and move to traj 5 (this should lift early enough to not tip the tower but we may need a slight wait)
                     if(!drive.isBusy()){
                         target = -2950;
+                        back(1, minDsTowerBWD, maxDSTowerBWD, 0 );
+                       // robot.distancePoleServo.setPosition(sensorUp);
                         currentState = State.TRAJ_5;
-                        drive.followTrajectoryAsync(traj5);
+                        //drive.followTrajectoryAsync(traj5);
                     }
                     break;
                 case TRAJ_5:
@@ -385,17 +411,19 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     target = -2950;
 
                     if (!drive.isBusy()) {
-                        currentState = State.PARK;
-                        drive.turnAsync(Math.toRadians(115));
+                        leftTurn(.5,minDSPoleTurn,maxDSPoleTurn);
+                        currentState = State.TURN_3;
+                       // drive.turnAsync(Math.toRadians(115));
                     }
                     break;
-                /*case TURN_3:
+                case TURN_3:
                     //Once turn 3 is finished, move to traj 6
                     target = -2950;
 
                     if (!drive.isBusy()) {
                         currentState = State.TRAJ_6;
-                        drive.followTrajectoryAsync(traj6);
+                        forward(1, 0, minDSPoleFWD,maxDSTowerFWD);
+                        //drive.followTrajectoryAsync(traj6);
                     }
                     break;
                 case TRAJ_6:
@@ -404,14 +432,16 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     if(!drive.isBusy()){
                         target = towerPos[c];
                         currentState = State.TRAJ_7;
-                        drive.followTrajectoryAsync(traj7);
+                        back(1,minDsPoleBWD,maxDSPoleBWD,-1);
+                        //drive.followTrajectoryAsync(traj7);
                     }
                     break;
-               */ case TRAJ_7:
+                case TRAJ_7:
                     target = towerPos[c];
                     if (!drive.isBusy()) {
+                        rightTurn(1,minDSTowerTurn,maxDSPoleTurn);
                         currentState = State.PARK;
-                        drive.turnAsync(Math.toRadians(-119));
+                        //drive.turnAsync(Math.toRadians(-119));
                     }
                 case PARK:
                     if(!drive.isBusy()){
@@ -453,20 +483,76 @@ public class CP_BlueTerminalDS extends LinearOpMode {
         }
 
     }
-    public void leftturn (double power, double minDS, double maxDS){
+
+    public void leftTurn (double power, double minDS, double maxDS){
 //        resetRuntime();
-        while(placeholder > maxDS || placeholder < minDS){
-            robot.bl.setPower(-power);
-            robot.fl.setPower(-power);
-            robot.br.setPower(power);
-            robot.fr.setPower(power);
+        robot.turnLeft(power);
+        while(robot.distanceTower.getDistance(DistanceUnit.CM) > minDS && opModeIsActive()){
+            Update(target);
+            if(robot.lift.getCurrentPosition() < -600) {
+                robot.distancePoleServo.setPosition(sensorDown);
+            }
+        }
+        robot.stop();
+        Update(target);
+    }
+    public void rightTurn (double power, double minDS, double maxDS){
+//        resetRuntime();
+        robot.turnRight(power);
+        while(robot.distanceTower.getDistance(DistanceUnit.CM ) > minDS && opModeIsActive()){
             Update(target);
         }
-        robot.bl.setPower(0);
-        robot.fl.setPower(0);
-        robot.br.setPower(0);
-        robot.fr.setPower(0);
+        robot.stop();
+        Update(target);
     }
+
+    public void forward (double power, double servoPower, double minDS, double maxDS){
+        while(robot.distanceTower.getDistance(DistanceUnit.CM) > minDS && opModeIsActive()){
+            robot.distancePoleServo.setPosition(sensorUp);
+            Update(target);
+            if(robot.lift.getCurrentPosition() < -600) {
+                robot.distancePoleServo.setPosition(sensorDown);
+                robot.forward(power);
+                robot.L1.setPower(servoPower);
+                robot.R1.setPower(servoPower);
+            }
+        }
+        robot.stop();
+        robot.L1.setPower(0);
+        robot.R1.setPower(0);
+        Update(target);
+    }
+    public void back (double power, double minDS, double maxDS, double servoPower){
+        robot.backward(power);
+        robot.distancePoleServo.setPosition(servoPower);
+        while(robot.distanceTower.getDistance(DistanceUnit.CM) > minDS && opModeIsActive()){
+            Update(target);
+            if(robot.lift.getCurrentPosition() > -1500 && robot.lift.getCurrentPosition() < -400){
+                robot.distancePoleServo.setPosition(sensorUp);
+            }
+            if(robot.lift.getCurrentPosition() < -100 && robot.lift.getCurrentPosition() > -400){
+                robot.distancePoleServo.setPosition(sensorDown);
+            }
+        }
+        robot.stop();
+        Update(target);
+        robot.L1.setPower(0);
+        robot.R1.setPower(0);
+    }
+    public void slowForward(double power, double servoPower, double time){
+        resetRuntime();
+        Update(target);
+        robot.forward(power);
+        robot.L1.setPower(servoPower);
+        robot.R1.setPower(servoPower);
+        while(opModeIsActive() && runtime.seconds() < time){
+            Update(target);
+        }
+        robot.stop();
+        robot.L1.setPower(0);
+        robot.R1.setPower(0);
+    }
+
 
     void tagToTelemetry(AprilTagDetection detection)
     {
