@@ -204,7 +204,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                 .back(5)
                 .build();
         Trajectory p3 = drive.trajectoryBuilder(traj6.end())
-                .forward(24)
+                .forward(23)
                 .build();
 
         //////APRIL TAGS DETECTION/////
