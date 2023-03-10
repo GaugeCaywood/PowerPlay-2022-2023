@@ -23,13 +23,13 @@ import java.lang.Math;
 import java.util.ArrayList;
 
 
-@Autonomous(name="1CP_BlueTerminalDS", group="Auton")
+@Autonomous(name="1CP_BLUE_Terminal_DS", group="Auton")
 public class CP_BlueTerminalDS extends LinearOpMode {
 
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
     BotHardware robot = new BotHardware();
-    private ElapsedTime runtime = new ElapsedTime();
+    public ElapsedTime runtime = new ElapsedTime();
     static final double FEET_PER_METER = 3.28084;
 
     double fx = 578.272;
@@ -81,10 +81,10 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
     //Sensor variables
     double sensorUp = 1;            double sensorDown = 0.5;
-    double minDSPoleTurn = 30;    double maxDSPoleTurn = 15;
+    double minDSPoleTurn = 25;    double maxDSPoleTurn = 15;
     double minDSPoleFWD = 3;        double maxDSPoleFWD = 4;
     double minDsPoleBWD = 20;        double maxDSPoleBWD = 7;
-    double minDSTowerTurn = 55.88;   double maxDSTowerTurn = 15;
+    double minDSTowerTurn = 100;   double maxDSTowerTurn = 15;
     double minDSTowerFWD = 3;    double maxDSTowerFWD = 10;
     double minDsTowerBWD = 300;        double maxDSTowerBWD = 400;
     //Lift variables
@@ -152,7 +152,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
         //FORWARD AFTER TURN
         Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
-                .forward(6.5)
+                .forward(5.5)
                 .build();
 
         //BACK THEN TURN
@@ -189,7 +189,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
         //BACK THEN TURN
         Trajectory traj7 = drive.trajectoryBuilder(traj2.end())
-                .back(11)
+                .back(11.5)
                 .addTemporalMarker(0, () -> {
                     resetRuntime();
                     drive.R1.setPower(-1.0);
@@ -198,13 +198,13 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                 .build();
 
         Trajectory p1 = drive.trajectoryBuilder(traj6.end())
-                .back(25)
+                .back(27)
                 .build();
         Trajectory p2 = drive.trajectoryBuilder(traj6.end())
-                .back(4)
+                .back(5)
                 .build();
         Trajectory p3 = drive.trajectoryBuilder(traj6.end())
-                .forward(20)
+                .forward(24)
                 .build();
 
         //////APRIL TAGS DETECTION/////
@@ -332,8 +332,8 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     //target = -2900;
                     //Update(target);
                     if (!drive.isBusy()) {
-                        currentState = State.TRAJ_BACK;
                         drive.followTrajectoryAsync(trajBack);
+                        currentState = State.TRAJ_BACK;
                     }
                     break;
                 case TRAJ_BACK:
@@ -343,11 +343,10 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     Update(target);
                     if (!drive.isBusy()) {
                        // leftturn(0.3, 100,1000);
-
-                        leftTurn(.25, minDSPoleTurn, maxDSPoleTurn);
+                        //leftTurnManual(1, .5);
+                        drive.turnAsync(Math.toRadians(25));
                         currentState = State.SENSOR_CHECK;
-
-                       // drive.turnAsync(Math.toRadians(59));
+                        // drive.turnAsync(Math.toRadians(59));
                     }
                 case SENSOR_CHECK:
                     target = -2950;
@@ -355,7 +354,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     telemetry.addData("Currently running: ", currentState);
                     Update(target);
                     if (!drive.isBusy()) {
-                        rightTurn(.1, minDSPoleTurn, maxDSPoleTurn);
+                        leftTurn(.2, minDSPoleTurn, maxDSPoleTurn);
                         currentState = State.TURN_1;
 
                         // drive.turnAsync(Math.toRadians(59));
@@ -367,7 +366,8 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
                     //Once turn is finished, move to traj 2
                     if (!drive.isBusy()) {
-                        forward(0.3, 0, minDSPoleFWD, maxDSPoleFWD);
+                        robot.distancePoleServo.setPosition(sensorUp);
+                        drive.followTrajectoryAsync(traj2);
                         currentState = State.TRAJ_2;
 
                         //drive.followTrajectoryAsync(traj2);
@@ -375,13 +375,12 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     break;
                 case TRAJ_2:
                     //Once traj 2 is finished (and over pole), drop lift to tower 5, move to traj 3
-                    target = -2550;
-                    Update(target);
-                    robot.distancePoleServo.setPosition(sensorDown);
                     if(!drive.isBusy()){
 //                        back(.3,minDsPoleBWD, maxDSPoleBWD, 0);
-                        currentState = State.TRAJ_3;
+                        target = -2050;
+                        Update(target);
                         drive.followTrajectoryAsync(traj7);
+                        currentState = State.TRAJ_3;
 
                     }
                     break;
@@ -390,25 +389,24 @@ public class CP_BlueTerminalDS extends LinearOpMode {
 
                     if (!drive.isBusy()) {
                        resetRuntime();
-                        while(runtime.milliseconds() < 750){
-                            robot.turnRight(.2);
-                        }
-                        rightTurnTower(.25,minDSTowerTurn,maxDSTowerTurn);
-                        currentState = State.PARK;
+                       //rightTurnManual(1.5, 0.5);
+                        drive.turnAsync(Math.toRadians(-95));
+                        currentState = State.TURN_2;
                         //drive.turnAsync(Math.toRadians(-122));
-
                     }
                     break;
                 case TURN_2:
                     //Once turn 2 is finished, move to traj 4 (forward into tower)
-                    target = towerPos[c];
+                    //target = towerPos[c];
                     Update(target);
 
                     if(!drive.isBusy()){
-                        c = c-1; //also drop tower counter so it'll be correct next loop
-                        forward(.5, 1, minDSTowerFWD, maxDSTowerFWD);
-                        slowForward(0.5, 1, .75);
-                        currentState = State.TRAJ_4;
+                        rightTurnTower(.25,minDSTowerTurn,maxDSTowerTurn);
+                        currentState = State.PARK;
+//                        c = c-1; //also drop tower counter so it'll be correct next loop
+//                        forward(.5, 1, minDSTowerFWD, maxDSTowerFWD);
+//                        slowForward(0.5, 1, .75);
+//                        currentState = State.TRAJ_4;
                         //drive.followTrajectoryAsync(traj4);
                     }
                     break;
@@ -427,8 +425,8 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     target = -2950;
 
                     if (!drive.isBusy()) {
-                        leftTurn(.5,minDSPoleTurn,maxDSPoleTurn);
-                        ;
+                        //leftTurn(.5,minDSPoleTurn,maxDSPoleTurn);
+                        drive.turn(Math.toRadians(-120));
                         currentState = State.TURN_3;
                        // drive.turnAsync(Math.toRadians(115));
                     }
@@ -509,10 +507,10 @@ public class CP_BlueTerminalDS extends LinearOpMode {
     }
 
     public void leftTurn (double power, double minDS, double maxDS){
-//        resetRuntime();
         robot.turnLeft(power);
         while(robot.distanceTower.getDistance(DistanceUnit.CM) > minDS && opModeIsActive()){
             telemetry.addData("Currently turning LEFT in: ", currentState);
+            telemetry.addData("CM seen: ", robot.distanceTower.getDistance(DistanceUnit.CM));
             Update(target);
             if(robot.lift.getCurrentPosition() < -600) {
                 robot.distancePoleServo.setPosition(sensorDown);
@@ -521,6 +519,20 @@ public class CP_BlueTerminalDS extends LinearOpMode {
         robot.stop();
         Update(target);
     }
+
+    public void leftTurnManual (double time, double power){
+        Update(target);
+        robot.turnLeft(power);
+        resetRuntime();
+        while (opModeIsActive() && (runtime.seconds() < time)){
+            Update(target);
+            if(robot.lift.getCurrentPosition() < -600) {
+                robot.distancePoleServo.setPosition(sensorDown);
+            }
+        }
+        robot.stop();
+    }
+
     public void rightTurn (double power, double minDS, double maxDS) {
         resetRuntime();
         while(runtime.milliseconds() < 1000) {
@@ -530,6 +542,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
         robot.turnRight(power);
         while (robot.distanceTower.getDistance(DistanceUnit.CM) > minDS && opModeIsActive()) {
             telemetry.addData("Currently turning RIGHT in: ", currentState);
+            telemetry.addData("CM seen: ", robot.distanceTower.getDistance(DistanceUnit.CM));
             Update(target);
         }
         robot.stop();
@@ -537,12 +550,15 @@ public class CP_BlueTerminalDS extends LinearOpMode {
     }
 
     public void rightTurnTower (double power, double minDS, double maxDS) {
-        resetRuntime();
-        while(runtime.milliseconds() < 1000) {
-            Update(target);
-            robot.turnRight(power);
+//        robot.turnRight(power);
+//        resetRuntime();
+//        while(runtime.milliseconds() < 2000) {
+//            Update(target);
+//            robot.turnRight(power);
+//        }
+        if(robot.lift.getCurrentPosition() < -600) {
+            robot.distancePoleServo.setPosition(sensorDown);
         }
-
         robot.turnRight(power);
         while (robot.distanceTower.getDistance(DistanceUnit.CM) > minDS && opModeIsActive()) {
             telemetry.addData("Currently turning RIGHT in: ", currentState);
@@ -550,6 +566,16 @@ public class CP_BlueTerminalDS extends LinearOpMode {
         }
         robot.stop();
         Update(target);
+    }
+
+    public void rightTurnManual (double time, double power){
+        resetRuntime();
+        Update(target);
+        robot.turnRight(power);
+        while (opModeIsActive() && runtime.seconds() < time){
+            Update(target);
+        }
+        robot.stop();
     }
 
     public void forward (double power, double servoPower, double minDS, double maxDS){
