@@ -464,11 +464,13 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                         drive.wrist.setPosition(0);
                         drive.L1.setPower(0);
                         drive.R1.setPower(0);
+                        target = -11;
+                        Update(target);
                     }
                     if(tagOfInterest.id == pos1){
                         //park 1
                         if (!drive.isBusy()) {
-                            target = -100;
+                            target = -11;
                             Update(target);
                             drive.turnAsync(Math.toRadians(20));
                             drive.followTrajectoryAsync(p1);
@@ -477,7 +479,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     }else if(tagOfInterest.id == pos2){
                         //park 2
                         if (!drive.isBusy()) {
-                            target = -100;
+                            target = -11;
                             Update(target);
                             drive.followTrajectoryAsync(p2);
                             currentState = State.IDLE;
@@ -485,7 +487,7 @@ public class CP_BlueTerminalDS extends LinearOpMode {
                     }else{
                         //park 3
                         if (!drive.isBusy()) {
-                            target = -100;
+                            target = -11;
                             Update(target);
                             drive.turnAsync(Math.toRadians(20));
                             drive.followTrajectoryAsync(p3);
