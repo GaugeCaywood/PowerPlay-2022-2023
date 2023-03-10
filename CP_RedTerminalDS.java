@@ -164,28 +164,6 @@ public class CP_RedTerminalDS extends LinearOpMode {
                     drive.L1.setPower(-1.0);
                 })
                 .build();
-        //FORWARD TO CONES
-        Trajectory traj4 = drive.trajectoryBuilder(traj3.end())
-                .forward(20)
-                .addTemporalMarker(1, () -> {
-                    resetRuntime();
-                    drive.R1.setPower(1.0);
-                    drive.L1.setPower(1.0);
-                })
-                .build();
-        // BACK OFF THE CONES
-        Trajectory traj5 = drive.trajectoryBuilder(traj4.end())
-                .back(24.25)
-                .addTemporalMarker(0, () -> {
-                    resetRuntime();
-                    drive.R1.setPower(0);
-                    drive.L1.setPower(0);
-                })
-                .build();
-        //FORWARD AND COLLECT
-        Trajectory traj6 = drive.trajectoryBuilder(traj5.end())
-                .forward(8)
-                .build();
 
         //BACK THEN TURN
         Trajectory traj7 = drive.trajectoryBuilder(traj2.end())
@@ -197,13 +175,13 @@ public class CP_RedTerminalDS extends LinearOpMode {
                 })
                 .build();
 
-        Trajectory p1 = drive.trajectoryBuilder(traj6.end())
+        Trajectory p1 = drive.trajectoryBuilder(traj7.end())
                 .back(27)
                 .build();
-        Trajectory p2 = drive.trajectoryBuilder(traj6.end())
+        Trajectory p2 = drive.trajectoryBuilder(traj7.end())
                 .back(5)
                 .build();
-        Trajectory p3 = drive.trajectoryBuilder(traj6.end())
+        Trajectory p3 = drive.trajectoryBuilder(traj7.end())
                 .forward(24)
                 .build();
 
@@ -391,6 +369,8 @@ public class CP_RedTerminalDS extends LinearOpMode {
                         drive.wrist.setPosition(0);
                         drive.L1.setPower(0);
                         drive.R1.setPower(0);
+                        target = -100;
+                        Update(target);
                     }
                     if(tagOfInterest.id == pos1){
                         //park 1
